@@ -12,8 +12,9 @@ from config import *
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
 # The ID and range of a sample spreadsheet.
+
 VALUES_START_ROW = 5
-#test changes
+
 service = None
 
 def initCreds():
@@ -82,10 +83,9 @@ def updateCell(values, range_name):
 
     result = sheet.values().update(valueInputOption='USER_ENTERED', spreadsheetId=SAMPLE_SPREADSHEET_ID,
                                        range=range_name, body=body).execute()
-    print(result)
 
 
-def getData(range_name):
+def getFormulaData(range_name):
     sheet = service.spreadsheets()
     result = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
                                 range=range_name, valueRenderOption='FORMULA').execute()
@@ -93,11 +93,28 @@ def getData(range_name):
 
     result = []
     if not values:
-        print('No data found.')
+        result = []
     else:
         
         for row in values:
-            # Print columns
+            if (row != []):
+                result.append(str(row[0]))
+            else:
+                break 
+
+    return result
+
+def getValueData(range_name):
+    sheet = service.spreadsheets()
+    result = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
+                                range=range_name).execute()
+    values = result.get('values', [])
+
+    result = []
+    if not values:
+        result = ['']
+    else:
+        for row in values:
             result.append(row[0])
 
     return result
@@ -106,13 +123,14 @@ def getData(range_name):
 def createCellsCouple(current_sheet, name_data, value_data, name_column, value_column):
     """found row id for new values"""
     range_name = f'{current_sheet}!{name_column}{VALUES_START_ROW}:{name_column}100'
+
+    respond = getFormulaData(range_name)
     
-    respond = getData(range_name)
     current_row_number = VALUES_START_ROW+len(respond)
 
-    updateCell(value_data, f'{current_sheet}!{value_column}{current_row_number}:{value_column}100')
+    updateCell(value_data, f'{current_sheet}!{value_column}{current_row_number}')
     
-    updateCell(name_data, f'{current_sheet}!{name_column}{current_row_number}:{name_column}100')
+    updateCell(name_data, f'{current_sheet}!{name_column}{current_row_number}')
     
 
 
@@ -175,6 +193,7 @@ def initSheet():
 
 
 #____ Bot ____#
+
 import logging
 
 from telegram import ReplyKeyboardMarkup
@@ -187,9 +206,9 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
-CHOOSING, TYPING_AMOUNT, TYPING_CATEGORY = range(3)
+CHOOSING, TYPING_AMOUNT, TYPING_CATEGORY, TYPING_NEW_CATEGORY = range(4)
 
-reply_keyboard = [['Добавить расход']]
+reply_keyboard = [['Добавить расходы'],['Добавить доход'],['Добавить новую категорию']]
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
 
@@ -202,30 +221,33 @@ def start(update, context):
     
 def get_user_categories(name_column,):
     range_name = f'{SHEET_NAME}!{name_column}{VALUES_START_ROW}:{name_column}100'
-    respond = getData(range_name)
-    print(respond)
+    respond = getFormulaData(range_name)
     
     return respond
 
 
-def add_expense(update, context):
+def add_money(update, context):
     text = update.message.text
     user_data = context.user_data
     user_data['choice'] = text
     
-    if(text == 'Добавить расход'):
+    if(text == 'Добавить расходы'):
         update.message.reply_text('Пожалуйста, введите сумму которую вы потратили:')
+        return TYPING_AMOUNT
+    elif(text == 'Добавить доход'):
+        update.message.reply_text('Пожалуйста, введите сумму которую вы получили:')
         return TYPING_AMOUNT
     elif(text == 'Добавить уникальную покупку/услугу'):
         update.message.reply_text('Пожалуйста, введите название покупки/услуги:')
         return TYPING_CATEGORY
+    elif(text == 'Добавить уникальный доход'):
+        update.message.reply_text('Пожалуйста, введите источник дохода:')
+        return TYPING_CATEGORY
     else:
         update.message.reply_text('Произошла ошибка.')
-        return CHOOSING
-    
+        return CHOOSING    
 
 def received_amount(update, context):
-
     user_data = context.user_data
     amount = update.message.text
 
@@ -234,29 +256,26 @@ def received_amount(update, context):
     amount = re.sub("[^0-9,]", "", amount)
 
     user_data['amount'] = amount
-    
-    """
-    category = user_data['choice']
-    user_data[category] = amount
-    del user_data['choice']
-    """
-    
-    user_categories = get_user_categories('G')
-    
-    reply_keyboard = [['Добавить уникальную покупку/услугу']]
-    
-    
-    if (len(user_categories)<4):
+
+
+    if (user_data['choice'] == 'Добавить расходы'):
+        user_categories = get_user_categories('G')
+        reply_keyboard = [['Добавить уникальную покупку/услугу']]
+    elif (user_data['choice'] == 'Добавить доход'):
+        user_categories = get_user_categories('C')
+        reply_keyboard = [['Добавить уникальный доход']] 
+
+    if (not user_categories):
+        pass
+    elif (len(user_categories)<4):
         for i in user_categories:
-            reply_keyboard.append([i])  
+            reply_keyboard.append([str(i)])
     else:
         for i in range(len(user_categories)-1):
             if (i%2==0):
-                reply_keyboard.append([user_categories[i], user_categories[i+1]])  
-                
-            if (i==(len(user_categories)-2)):
-                reply_keyboard.append([user_categories[i+1]])  
-
+                reply_keyboard.append([str(user_categories[i]), str(user_categories[i+1])])  
+            elif (i==(len(user_categories)-2)):
+                reply_keyboard.append([str(user_categories[i+1])])  
         
     markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
@@ -268,24 +287,94 @@ def received_amount(update, context):
     
 def received_category(update, context):
     user_data = context.user_data
-    category = update.message.text
+    category = str(update.message.text)
     user_data['category'] = category
+
+    if(user_data['choice'] == 'Добавить уникальную покупку/услугу'):
+        categories_column = 'I'
+        values_column = 'H'
+    elif(user_data['choice'] == 'Добавить уникальный доход'):
+        categories_column = 'E'
+        values_column = 'D'
+    elif(user_data['choice'] == 'Добавить расходы'):
+        categories_column = 'G'
+        values_column = 'F'
+        user_categories = get_user_categories(categories_column)
+    elif(user_data['choice'] == 'Добавить доход'):
+        categories_column = 'C'
+        values_column = 'B'
+        user_categories = get_user_categories(categories_column)
+ 
                               
-    if (user_data['choice'] == 'Добавить уникальную покупку/услугу'):
-        createCellsCouple(SHEET_NAME, user_data['category'], user_data['amount'], "I", "H")
-        update.message.reply_text("Добавлено {} на сумму в {}.".format(user_data['category'],user_data['amount']),
+    if (user_data['choice'] == 'Добавить уникальную покупку/услугу' or user_data['choice'] == 'Добавить уникальный доход'):
+        createCellsCouple(SHEET_NAME, user_data['category'], user_data['amount'], categories_column, values_column)
+        update.message.reply_text("Добавлено {} на сумму {}.".format(user_data['category'],user_data['amount']),
                               reply_markup=markup)
-    else:
-        pass
     
+    elif (category in user_categories):
+        for i in range(len(user_categories)):
+            if (category == str(user_categories[i])):
+                range_name = f'{SHEET_NAME}!{values_column}{i+5}'
+                respond = getFormulaData(range_name)
+
+                if (respond == []):
+                    updateCell('=' + user_data['amount'], f'{SHEET_NAME}!{values_column}{i+5}')
+                else:
+                    updateCell(respond[0] + '+' + user_data['amount'], f'{SHEET_NAME}!{values_column}{i+5}')
+
+                respond = getValueData(range_name)
+                update.message.reply_text("Добавлено {} в категорию {}.\nВсего {} потрачено на {}".format(user_data['amount'],user_data['category'],respond[0],user_data['category']),
+                              reply_markup=markup)
 
     return CHOOSING
+
+
+def add_new_category(update, context):
+    text = update.message.text
+    user_data = context.user_data
+    user_data['choice'] = text
+        
+    reply_keyboard = [['Добавить категорию расходов'],['Добавить категорию доходов']]      
+    markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+
+    if(text == 'Добавить новую категорию'):
+        update.message.reply_text("Какую категорию вы желаете добавить?", reply_markup=markup)
+        return CHOOSING
+    elif(text == 'Добавить категорию расходов' or text == 'Добавить категорию доходов'):
+        update.message.reply_text('Пожалуйста, введите название новой категории:')
+        return TYPING_NEW_CATEGORY
+    else:
+        update.message.reply_text('Произошла ошибка.')
+        return CHOOSING    
+
+def received_new_category(update, context):
+    user_data = context.user_data
+    category = update.message.text
+    user_data['category'] = category
+
+    if (user_data['choice'] == 'Добавить категорию расходов'):
+        category_column = 'G'
+        reply_string = 'расходов'
+    elif (user_data['choice'] == 'Добавить категорию доходов'):
+        category_column = 'C'
+        reply_string = 'доходов'
+        
+    range_name = f'{SHEET_NAME}!{category_column}{VALUES_START_ROW}:{category_column}100'
+
+    respond = getFormulaData(range_name)
+    current_row_number = VALUES_START_ROW+len(respond)
+
+    updateCell(category, f'{SHEET_NAME}!{category_column}{current_row_number}')
+
+    update.message.reply_text("Добавлено новая категория {} - {}".format(reply_string, user_data['category']),
+                              reply_markup=markup)
+    return CHOOSING   
+        
 
 
 def error(update, context):
     """Log Errors caused by Updates."""
     logger.warning('Update "%s" caused error "%s"', update, context.error)
-
 
 def done(update, context):
     user_data = context.user_data
@@ -313,8 +402,14 @@ def runbot():
         entry_points=[CommandHandler('start', start)],
 
         states={
-            CHOOSING: [MessageHandler(Filters.regex('^(Добавить расход|Добавить уникальную покупку/услугу)$'),
-                                      add_expense)
+            CHOOSING: [MessageHandler(Filters.regex('^(Добавить расходы|Добавить доход|Добавить уникальную покупку/услугу|Добавить уникальный доход)$'),
+                                      add_money),
+                        MessageHandler(Filters.regex('^(Добавить новую категорию)$'),
+                                      add_new_category),
+                        MessageHandler(Filters.regex('^(Добавить категорию расходов|Добавить категорию доходов)$'),
+                                      add_new_category),
+                        MessageHandler(Filters.text,
+                                          received_category)
                        ],
 
             TYPING_AMOUNT: [MessageHandler(Filters.text,
@@ -323,6 +418,10 @@ def runbot():
                            
             TYPING_CATEGORY: [MessageHandler(Filters.text,
                                           received_category)
+                            ],
+
+            TYPING_NEW_CATEGORY: [MessageHandler(Filters.text,
+                                          received_new_category)
                             ],
         },
         fallbacks=[]
@@ -349,5 +448,8 @@ if __name__ == '__main__':
     initCreds()
     initSheet()
     runbot()
+
+    #createCellsCouple("TEST", "gay", 777, "C", "B")
+    #createCellsCouple("TEST", "gey", 228, "C", "B")
     
  

@@ -36,6 +36,37 @@ def updateNewSheetStyle(sheetId, service, SAMPLE_SPREADSHEET_ID):
           "repeatCell": {
             "range": {
               "sheetId": sheetId,
+              "startRowIndex": 4,
+              "endRowIndex": 5,
+              "startColumnIndex": 9,
+              "endColumnIndex": 11
+            },
+            "cell": {
+              "userEnteredFormat": {
+                "backgroundColor": {
+                  "red": 1,
+                  "green": 0.95,
+                  "blue": 0.8 
+                },
+                "horizontalAlignment" : "CENTER",
+                "textFormat": {
+                  "foregroundColor": {
+                    "red": 0,
+                    "green": 0,
+                    "blue": 0
+                  },
+                  "fontSize": 14,
+                  "bold": "true"
+                }
+              }
+            },
+            "fields": "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment)"
+          }
+        },
+        {
+          "repeatCell": {
+            "range": {
+              "sheetId": sheetId,
               "startRowIndex": 1,
               "endRowIndex": 4,
               "startColumnIndex": 0,
@@ -95,9 +126,9 @@ def updateNewSheetStyle(sheetId, service, SAMPLE_SPREADSHEET_ID):
                     "horizontalAlignment" : "CENTER",
                     "textFormat": {
                       "foregroundColor": {
-                        "red": 0.01,
-                        "green": 0.9,
-                        "blue": 0.3
+                        "red": 0.094,
+                        "green": 0.5,
+                        "blue": 0.22
                       },
                       "fontSize": 12,
                       "bold": "true"
@@ -105,6 +136,31 @@ def updateNewSheetStyle(sheetId, service, SAMPLE_SPREADSHEET_ID):
                 }
             },
             "fields": "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment)"
+          }
+        },
+        {
+          "repeatCell": {
+            "range": {
+              "sheetId": sheetId,
+              "startRowIndex": 5,
+              "endRowIndex": 6,
+              "startColumnIndex": 9,
+              "endColumnIndex": 11
+            },
+            "cell": {
+                "userEnteredFormat": {
+                    "textFormat": {
+                      "foregroundColor": {
+                        "red": 0.094,
+                        "green": 0.5,
+                        "blue": 0.22
+                      },
+                      "fontSize": 12,
+                      "bold": "true"
+                    }
+                }
+            },
+            "fields": "userEnteredFormat(textFormat)"
           }
         },
         {
@@ -142,22 +198,16 @@ def updateNewSheetStyle(sheetId, service, SAMPLE_SPREADSHEET_ID):
           "repeatCell": {
             "range": {
               "sheetId": sheetId,
-              "startRowIndex": 4,
-              "endRowIndex": 5,
+              "startRowIndex": 6,
+              "endRowIndex": 7,
               "startColumnIndex": 9,
               "endColumnIndex": 11
             },
             "cell": {
                 "userEnteredFormat": {
-                    "backgroundColor": {
-                      "red": 1,
-                      "green": 0.95,
-                      "blue": 0.8 
-                    },
-                    "horizontalAlignment" : "CENTER",
                     "textFormat": {
                       "foregroundColor": {
-                        "red": 0,
+                        "red": 0.9,
                         "green": 0,
                         "blue": 0
                       },
@@ -166,24 +216,32 @@ def updateNewSheetStyle(sheetId, service, SAMPLE_SPREADSHEET_ID):
                     }
                 }
             },
-            "fields": "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment)"
+            "fields": "userEnteredFormat(textFormat)"
           }
         },
         {
           "repeatCell": {
             "range": {
               "sheetId": sheetId,
-              "startRowIndex": 0,
-              "endRowIndex": 100,
-              "startColumnIndex": 0,
-              "endColumnIndex": 9
+              "startRowIndex": 7,
+              "endRowIndex": 8,
+              "startColumnIndex": 9,
+              "endColumnIndex": 11
             },
             "cell": {
                 "userEnteredFormat": {
-                    "horizontalAlignment" : "CENTER"
+                    "textFormat": {
+                      "foregroundColor": {
+                        "red": 0.21,
+                        "green": 0.11,
+                        "blue": 0.46
+                      },
+                      "fontSize": 12,
+                      "bold": "true"
+                    }
                 }
             },
-            "fields": "userEnteredFormat(horizontalAlignment)"
+            "fields": "userEnteredFormat(textFormat)"
           }
         },
         {
@@ -246,7 +304,7 @@ def updateNewSheetStyle(sheetId, service, SAMPLE_SPREADSHEET_ID):
               "sheetId": sheetId,
               "startRowIndex": 4,
               "endRowIndex": 8,
-              "startColumnIndex": 8,
+              "startColumnIndex": 9,
               "endColumnIndex": 12
             },
             "innerVertical": {
