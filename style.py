@@ -1,5 +1,5 @@
 
-def updateNewSheetStyle(sheetId, service, SAMPLE_SPREADSHEET_ID):
+def updateNewSheetStyle(sheetId, service, spreadsheetId):
     requests = [ [
         {
           "repeatCell": {
@@ -353,5 +353,5 @@ def updateNewSheetStyle(sheetId, service, SAMPLE_SPREADSHEET_ID):
         'requests': requests
     }
 
-    request = service.spreadsheets().batchUpdate(spreadsheetId=SAMPLE_SPREADSHEET_ID, body=body)
+    request = service.spreadsheets().batchUpdate(spreadsheetId=spreadsheetId, body=body)
     response = request.execute()
