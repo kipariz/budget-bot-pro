@@ -318,9 +318,9 @@ def received_category(update, context):
                 respond = getFormulaData(range_name)
 
                 if (respond == []):
-                    updateCell('=' + user_data['amount'], f'{SHEET_NAME}!{values_column}{i+5}')
+                    updateCell('=' + user_data['amount'], f'{SHEET_NAME}!{values_column}{i+VALUES_START_ROW}')
                 else:
-                    updateCell(respond[0] + '+' + user_data['amount'], f'{SHEET_NAME}!{values_column}{i+5}')
+                    updateCell(respond[0] + '+' + user_data['amount'], f'{SHEET_NAME}!{values_column}{i+VALUES_START_ROW}')
 
                 respond = getValueData(range_name)
                 update.message.reply_text("Добавлено {} в категорию {}.\nВсего {} потрачено на {}".format(user_data['amount'],user_data['category'],respond[0],user_data['category']),
@@ -404,9 +404,7 @@ def runbot():
         states={
             CHOOSING: [MessageHandler(Filters.regex('^(Добавить расходы|Добавить доход|Добавить уникальную покупку/услугу|Добавить уникальный доход)$'),
                                       add_money),
-                        MessageHandler(Filters.regex('^(Добавить новую категорию)$'),
-                                      add_new_category),
-                        MessageHandler(Filters.regex('^(Добавить категорию расходов|Добавить категорию доходов)$'),
+                        MessageHandler(Filters.regex('^(Добавить новую категорию|Добавить категорию расходов|Добавить категорию доходов)$'),
                                       add_new_category),
                         MessageHandler(Filters.text,
                                           received_category)
@@ -448,8 +446,3 @@ if __name__ == '__main__':
     initCreds()
     initSheet()
     runbot()
-
-    #createCellsCouple("TEST", "gay", 777, "C", "B")
-    #createCellsCouple("TEST", "gey", 228, "C", "B")
-    
- 
