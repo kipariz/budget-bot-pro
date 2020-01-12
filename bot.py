@@ -161,7 +161,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
-CHOOSING, TYPING_AMOUNT, TYPING_CATEGORY, TYPING_NEW_CATEGORY, TYPING_NEW_TABLE = range(5)
+CHOOSING, TYPING_AMOUNT, TYPING_CATEGORY, TYPING_NEW_CATEGORY, TYPING_NEW_TABLE, MAINMENU = range(6)
 
 reply_keyboard = [['Добавить расходы'], [
     'Добавить доход'], ['Добавить новую категорию']]
@@ -389,7 +389,7 @@ def newtable(update, context):
     update.message.reply_text(
         "Для того чтобы зарегистрировать новую таблицу пришлите её адрес")
 
-    return TYPING_NEW_TABLE
+    return CHOOSING
 
 def add_new_table(update, context):
     text = update.message.text
@@ -399,9 +399,9 @@ def add_new_table(update, context):
 
     if(user_data['tableid']):
         initSheet(update, context, user_data['tableid'])
-        update.message.reply_text("Ваша таблица успешно сохранена", reply_markup=markup)
+        update.message.reply_text("Ваша таблица успешно сохранена, для того чтобы начать ипользуйте команду /start")
 
-    return CHOOSING
+    return MAINMENU
 
 
 def error(update, context):
@@ -438,9 +438,7 @@ def runbot():
 
     # Add conversation handler with the states CHOOSING, TYPING_CATEGORY and TYPING_REPLY
     conv_handler = ConversationHandler(
-        entry_points=[CommandHandler('start', start),
-                      CommandHandler('newtable', newtable)
-                      ],
+        entry_points=[CommandHandler('start', start)],
 
         states={
             CHOOSING: [MessageHandler(Filters.regex('^(Добавить расходы|Добавить доход|Добавить уникальную покупку/услугу|Добавить уникальный доход)$'),
@@ -471,7 +469,21 @@ def runbot():
 
     )
 
+    new_sheet_handler = ConversationHandler(
+        entry_points=[CommandHandler('newtable', newtable)],
+
+        states={
+            CHOOSING: [
+                       MessageHandler(Filters.text,
+                                                 add_new_table)
+                       ],
+            MAINMENU: [conv_handler]
+        },
+        fallbacks=[]
+    )
+
     dp.add_handler(conv_handler)
+    dp.add_handler(new_sheet_handler)
 
     # log all errors
     dp.add_error_handler(error)
