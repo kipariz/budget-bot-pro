@@ -1,7 +1,7 @@
 from __future__ import print_function
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
                           ConversationHandler, PicklePersistence)
-from telegram import ReplyKeyboardMarkup
+from telegram import (ReplyKeyboardMarkup, ParseMode)
 import logging
 import pickle
 import datetime
@@ -31,16 +31,20 @@ markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
 
 def start(update, context):
-    update.message.reply_text(
-        "Hi! Bot has been started",
-        reply_markup=markup)
-
+    chat_id = update.message.chat_id
+    context.bot.send_message(chat_id=chat_id, 
+                 text="Привет, *BudgetBotPro* создан для того чтобы облегчить тебе ведение своего собственного бюджета. \n\n" +
+                "Если ты используешь его в первый раз, то советуем тебе начать с регистрации своей новой таблицы, куда будут записываться все твои расходы, доходы и остальная информация. \n\n" +
+                "Просто нажми на /newtable и мы расскажем что нужно делать.", 
+                 parse_mode=ParseMode.MARKDOWN,
+                 reply_markup=markup)
+                 
     return CHOOSING
 
 SHEET_NAME = 'TEST'
 
 def initSheet(update, context, spreadsheetId):
-    update.message.reply_text("Начинаем настройку вашей новой таблицы")
+    update.message.reply_text("Начинаем настройку новой таблицы")
 
     mergeCells(getSheetId(SHEET_NAME, spreadsheetId), 0, 1, 1, 9, spreadsheetId)
     mergeCells(getSheetId(SHEET_NAME, spreadsheetId), 1, 2, 1, 5, spreadsheetId)
@@ -248,8 +252,17 @@ def received_new_category(update, context):
 
 
 def newtable(update, context):
-    update.message.reply_text(
-        "Для того чтобы зарегистрировать новую таблицу пришлите её адрес")
+    chat_id = update.message.chat_id
+    context.bot.send_message(chat_id=chat_id, 
+                 text="Для того чтобы зарегистрировать новую таблицу: \n\n" +
+                 "*1.* Пройди по ссылке *sheet.new* \n" +
+                 "*2.* Скопируй ссылку из адресной строки своего браузера\n" +
+                 "*3.* Отправь ссылку на таблицу нашему боту\n" +
+                 "*4.* Готово! \n\n" +
+                 "Ждём от тебя *ссылку*...", 
+                 parse_mode=ParseMode.MARKDOWN)
+
+    context.bot.send_photo(chat_id=chat_id, photo=open('img/addressbar.png', 'rb'))
 
     return CHOOSING
 
@@ -261,7 +274,7 @@ def add_new_table(update, context):
 
     if(user_data['tableid']):
         initSheet(update, context, user_data['tableid'])
-        update.message.reply_text("Ваша таблица успешно сохранена, для того чтобы начать ипользуйте команду /start")
+        update.message.reply_text("Таблица успешно сохранена!\n")
 
     return MAINMENU
 
@@ -272,20 +285,6 @@ def error(update, context):
     update.message.reply_text("Произошла какая-то ошибка, попробуйте ещё раз", reply_markup=markup)
 
     return CHOOSING
-
-
-def done(update, context):
-    user_data = context.user_data
-    if 'choice' in user_data:
-        del user_data['choice']
-
-    update.message.reply_text("I learned these facts about you:"
-                              "{}"
-                              "Until next time!".format(facts_to_str(user_data)))
-
-    user_data.clear()
-    return ConversationHandler.END
-
 
 def runbot():
     # Create the Updater and pass it your bot's token.
