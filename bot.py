@@ -41,7 +41,7 @@ def start(update, context):
                  
     return CHOOSING
 
-SHEET_NAME = 'TEST'
+SHEET_NAME = 'NewSheet'
 
 def initSheet(update, context, spreadsheetId):
     update.message.reply_text("Начинаем настройку новой таблицы")
@@ -273,6 +273,7 @@ def add_new_table(update, context):
     user_data['tableid'] = text
 
     if(user_data['tableid']):
+        renameFirstSheet(user_data['tableid'], "NewSheet")
         initSheet(update, context, user_data['tableid'])
         update.message.reply_text("Таблица успешно сохранена!\n")
 

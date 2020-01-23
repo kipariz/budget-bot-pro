@@ -42,6 +42,43 @@ def initCreds():
     service = build('sheets', 'v4', credentials=creds)
     return service 
 
+def renameFirstSheet(spreadsheetId, newSheetName):
+    requests = [{
+        "updateSheetProperties": {
+            "properties": {
+                "title": newSheetName,
+            },
+            "fields": "title",
+        }
+    }]
+
+    body = {
+        'requests': requests
+    }
+
+    request = service.spreadsheets().batchUpdate(
+        spreadsheetId=spreadsheetId, body=body) 
+    response = request.execute()
+
+
+def renameSheet(spreadsheetId, sheetId, newSheetName):
+    requests = [{
+        "updateSheetProperties": {
+            "properties": {
+                "sheetId": sheetId,
+                "title": newSheetName,
+            },
+            "fields": "title",
+        }
+    }]
+
+    body = {
+        'requests': requests
+    }
+
+    request = service.spreadsheets().batchUpdate(
+        spreadsheetId=spreadsheetId, body=body) 
+    response = request.execute()
 
 
 def mergeCells(sheetId, startRowIndex, endRowIndex, startColumnIndex, endColumnIndex, spreadsheetId):
@@ -65,7 +102,7 @@ def mergeCells(sheetId, startRowIndex, endRowIndex, startColumnIndex, endColumnI
     }
 
     request = service.spreadsheets().batchUpdate(
-        spreadsheetId=spreadsheetId, body=body) ###Заменить айди, добавить в параметры функции, сделать инициализацию не в мейне а в функции new table
+        spreadsheetId=spreadsheetId, body=body)
     response = request.execute()
 
 
