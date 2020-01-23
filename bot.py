@@ -4,7 +4,7 @@ from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
 from telegram import (ReplyKeyboardMarkup, ParseMode)
 import logging
 import pickle
-import datetime
+import time
 import re
 
 from style import updateNewSheetStyle
@@ -41,7 +41,7 @@ def start(update, context):
                  
     return CHOOSING
 
-SHEET_NAME = 'NewSheet'
+SHEET_NAME = time.strftime("%m.%y", time.localtime())
 
 def initSheet(update, context, spreadsheetId):
     update.message.reply_text("Начинаем настройку новой таблицы")
@@ -56,8 +56,7 @@ def initSheet(update, context, spreadsheetId):
 
     mergeCells(getSheetId(SHEET_NAME, spreadsheetId), 4, 5, 9, 11, spreadsheetId)
 
-    mydate = datetime.datetime.now()
-    current_month = mydate.strftime("%B")
+    current_month = time.strftime("%B", time.localtime())
     updateCell(current_month, f'{SHEET_NAME}!B1', spreadsheetId)
 
     update.message.reply_text("Уже скоро...")
@@ -273,8 +272,11 @@ def add_new_table(update, context):
     user_data['tableid'] = text
 
     if(user_data['tableid']):
-        renameFirstSheet(user_data['tableid'], "NewSheet")
+        currentMonth = time.strftime("%m.%y", time.localtime())
+        renameFirstSheet(user_data['tableid'], currentMonth)
+
         initSheet(update, context, user_data['tableid'])
+
         update.message.reply_text("Таблица успешно сохранена!\n")
 
     return MAINMENU
