@@ -23,7 +23,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
-CHOOSING, TYPING_AMOUNT, TYPING_CATEGORY, TYPING_NEW_CATEGORY, TYPING_NEW_TABLE, MAINMENU = range(6)
+CHOOSING, TYPING_AMOUNT, TYPING_CATEGORY, TYPING_NEW_CATEGORY, ADDING_TABLE, MAINMENU = range(6)
 
 reply_keyboard = [['Добавить расходы'], [
     'Добавить доход'], ['Добавить новую категорию']]
@@ -263,7 +263,7 @@ def newtable(update, context):
 
     context.bot.send_photo(chat_id=chat_id, photo=open('img/addressbar.png', 'rb'))
 
-    return CHOOSING
+    return ADDING_TABLE
 
 def add_new_table(update, context):
     text = update.message.text
@@ -277,9 +277,10 @@ def add_new_table(update, context):
 
         initSheet(update, context, user_data['tableid'])
 
-        update.message.reply_text("Таблица успешно сохранена!\n")
+        update.message.reply_text("Таблица успешно сохранена!\n",
+                              reply_markup=markup)
 
-    return MAINMENU
+    return CHOOSING
 
 
 def error(update, context):
@@ -299,6 +300,7 @@ def runbot():
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
+
 
     # Add conversation handler with the states CHOOSING, TYPING_CATEGORY and TYPING_REPLY
     conv_handler = ConversationHandler(
@@ -324,30 +326,18 @@ def runbot():
             TYPING_NEW_CATEGORY: [MessageHandler(Filters.text,
                                                  received_new_category)
                                   ],
-
-            TYPING_NEW_TABLE: [MessageHandler(Filters.text,
+            ADDING_TABLE: [MessageHandler(Filters.text,
                                                  add_new_table)
-                                  ],
+                                    ],
         },
-        fallbacks=[]
+        fallbacks=[
+            CommandHandler('newtable', newtable)
+        ]
 
     )
 
-    new_sheet_handler = ConversationHandler(
-        entry_points=[CommandHandler('newtable', newtable)],
-
-        states={
-            CHOOSING: [
-                       MessageHandler(Filters.text,
-                                                 add_new_table)
-                       ],
-            MAINMENU: [conv_handler]
-        },
-        fallbacks=[]
-    )
 
     dp.add_handler(conv_handler)
-    dp.add_handler(new_sheet_handler)
 
     # log all errors
     dp.add_error_handler(error)
