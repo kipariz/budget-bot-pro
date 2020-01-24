@@ -332,8 +332,9 @@ def runbot():
         },
         fallbacks=[
             CommandHandler('newtable', newtable)
-        ]
-
+        ],
+        name="MainConv",
+        persistent=True
     )
 
 
