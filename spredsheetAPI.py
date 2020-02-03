@@ -42,13 +42,24 @@ def initCreds():
     service = build('sheets', 'v4', credentials=creds)
     return service 
 
-def renameFirstSheet(spreadsheetId, newSheetName):
+def createBlankSheet(spreadsheetId, SheetName):
+    spreadsheet = service.spreadsheets().get(
+        spreadsheetId=spreadsheetId).execute()
+    for _sheet in spreadsheet['sheets']:
+        if (_sheet['properties']['title'] == SheetName) :
+            return False
+
     requests = [{
-        "updateSheetProperties": {
+        "addSheet": {
             "properties": {
-                "title": newSheetName,
-            },
-            "fields": "title",
+                "title": SheetName,
+                "index": 0,
+                "tabColor": {
+                    "red": 0.0,
+                    "green": 1.0,
+                    "blue": 0.0
+                },
+            }
         }
     }]
 
@@ -59,7 +70,8 @@ def renameFirstSheet(spreadsheetId, newSheetName):
     request = service.spreadsheets().batchUpdate(
         spreadsheetId=spreadsheetId, body=body) 
     response = request.execute()
-
+    
+    return True
 
 def renameSheet(spreadsheetId, sheetId, newSheetName):
     requests = [{

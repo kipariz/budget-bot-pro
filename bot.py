@@ -1,7 +1,7 @@
 from __future__ import print_function
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
                           ConversationHandler, PicklePersistence)
-from telegram import (ReplyKeyboardMarkup, ParseMode)
+from telegram import (ReplyKeyboardMarkup, ParseMode, InputMediaPhoto)
 import logging
 import pickle
 import time
@@ -254,14 +254,17 @@ def newtable(update, context):
     chat_id = update.message.chat_id
     context.bot.send_message(chat_id=chat_id, 
                  text="Для того чтобы зарегистрировать новую таблицу: \n\n" +
-                 "*1.* Пройди по ссылке *sheet.new* \n" +
-                 "*2.* Скопируй ссылку из адресной строки своего браузера\n" +
-                 "*3.* Отправь ссылку на таблицу нашему боту\n" +
+                 "*1.* Пройди по ссылке [с компьютера](http://www.sheet.new) или [с телефона](https://docs.google.com/spreadsheets/u/0/). \n" +
+                 "*2.* Скопируй ссылку из адресной строки своего браузера.\n" +
+                 "*3.* Отправь ссылку на таблицу нашему боту.\n" +
                  "*4.* Готово! \n\n" +
                  "Ждём от тебя *ссылку*...", 
-                 parse_mode=ParseMode.MARKDOWN)
+                 parse_mode=ParseMode.MARKDOWN,
+                 disable_web_page_preview=True)
 
-    context.bot.send_photo(chat_id=chat_id, photo=open('img/addressbar.png', 'rb'))
+    context.bot.send_media_group(chat_id=chat_id,
+                media=[InputMediaPhoto(open('img/instruction.png', 'rb'), caption="С компьютера"),
+                        InputMediaPhoto(open('img/instruction.png', 'rb'), caption="С телефона")])
 
     return ADDING_TABLE
 
@@ -273,12 +276,13 @@ def add_new_table(update, context):
 
     if(user_data['tableid']):
         currentMonth = time.strftime("%m.%y", time.localtime())
-        renameFirstSheet(user_data['tableid'], currentMonth)
-
-        initSheet(update, context, user_data['tableid'])
-
-        update.message.reply_text("Таблица успешно сохранена!\n",
-                              reply_markup=markup)
+        if( createBlankSheet(user_data['tableid'], currentMonth) ):
+            initSheet(update, context, user_data['tableid'])
+            update.message.reply_text("Таблица успешно сохранена!\n",
+                                        reply_markup=markup)
+        else:
+            update.message.reply_text("Таблица с таким названием уже существует!\nВозвращаем вас в главное меню",
+                                        reply_markup=markup)
 
     return CHOOSING
 
