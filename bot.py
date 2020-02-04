@@ -4,6 +4,7 @@ from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
 from telegram import (ReplyKeyboardMarkup, ParseMode, InputMediaPhoto)
 import logging
 import pickle
+import datetime
 import time
 import re
 
@@ -32,6 +33,8 @@ markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
 def start(update, context):
     chat_id = update.message.chat_id
+    user_data = context.user_data
+    user_data['chat_id'] = chat_id
     context.bot.send_message(chat_id=chat_id, 
                  text="Привет, *BudgetBotPro* создан для того чтобы облегчить тебе ведение своего собственного бюджета. \n\n" +
                 "Если ты используешь его в первый раз, то советуем тебе начать с регистрации своей новой таблицы, куда будут записываться все твои расходы, доходы и остальная информация. \n\n" +
@@ -43,8 +46,9 @@ def start(update, context):
 
 SHEET_NAME = time.strftime("%m.%y", time.localtime())
 
-def initSheet(update, context, spreadsheetId):
-    update.message.reply_text("Начинаем настройку новой таблицы")
+def initSheet(context, chat_id, spreadsheetId):
+    context.bot.send_message(chat_id=chat_id, 
+                            text="Начинаем настройку новой таблицы")
 
     mergeCells(getSheetId(SHEET_NAME, spreadsheetId), 0, 1, 1, 9, spreadsheetId)
     mergeCells(getSheetId(SHEET_NAME, spreadsheetId), 1, 2, 1, 5, spreadsheetId)
@@ -59,7 +63,8 @@ def initSheet(update, context, spreadsheetId):
     current_month = time.strftime("%B", time.localtime())
     updateCell(current_month, f'{SHEET_NAME}!B1', spreadsheetId)
 
-    update.message.reply_text("Уже скоро...")
+    context.bot.send_message(chat_id=chat_id, 
+                            text="Уже скоро...")
 
     updateCell("ИТОГИ МЕСЯЦА", f'{SHEET_NAME}!J5', spreadsheetId)
     updateCell("ДОХОД", f'{SHEET_NAME}!J6', spreadsheetId)
@@ -70,7 +75,8 @@ def initSheet(update, context, spreadsheetId):
     updateCell("=SUM(F5:F100)+SUM(H5:H100)", f'{SHEET_NAME}!K7', spreadsheetId)
     updateCell("=K6-K7", f'{SHEET_NAME}!K8', spreadsheetId)
 
-    update.message.reply_text("Почти...")
+    context.bot.send_message(chat_id=chat_id, 
+                            text="Почти...")
     
     updateCell("ДОХОДЫ", f'{SHEET_NAME}!B2', spreadsheetId)
     updateCell("РАСХОДЫ", f'{SHEET_NAME}!F2', spreadsheetId)
@@ -90,7 +96,8 @@ def initSheet(update, context, spreadsheetId):
     updateNewSheetStyle(getSheetId(SHEET_NAME, spreadsheetId), service=service,
                         spreadsheetId=spreadsheetId)
 
-    update.message.reply_text("Готово")
+    context.bot.send_message(chat_id=chat_id, 
+                            text="Готово")
 
 
 def get_user_categories(name_column, spreadsheetId):
@@ -277,7 +284,7 @@ def add_new_table(update, context):
     if(user_data['tableid']):
         currentMonth = time.strftime("%m.%y", time.localtime())
         if( createBlankSheet(user_data['tableid'], currentMonth) ):
-            initSheet(update, context, user_data['tableid'])
+            initSheet(context, user_data['chat_id'], user_data['tableid'])
             update.message.reply_text("Таблица успешно сохранена!\n",
                                         reply_markup=markup)
         else:
@@ -302,9 +309,32 @@ def runbot():
 
     updater = Updater(TOKEN, persistence=my_persistence, use_context=True)
 
+
+    job = updater.job_queue
+
+    def check_new_month(context):
+        if (datetime.datetime.today().day == 1):
+            file_Name = "data.pickle"
+            # we open the file for reading
+            fileObject = open(file_Name,'rb')  
+            # load the object from the file into var b
+            b = pickle.load(fileObject)  
+
+            for k, v in b['user_data'].items():
+                if (v['tableid']): 
+                    currentMonth = time.strftime("%m.%y", time.localtime())
+                    
+                    if( createBlankSheet(v['tableid'], currentMonth) ):
+                        initSheet(context, k, v['tableid'])
+                        context.bot.send_message(chat_id=k, 
+                            text='Поздравляем с наступлением нового месяца! Новая таблица была создана автоматически.')
+
+    job_check_new_month = job.run_daily(check_new_month, datetime.time(0,0,1))
+
+
+
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
-
 
     # Add conversation handler with the states CHOOSING, TYPING_CATEGORY and TYPING_REPLY
     conv_handler = ConversationHandler(
