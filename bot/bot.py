@@ -1,6 +1,5 @@
 import logging
 import os
-from configs.config import ENV
 
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
@@ -60,7 +59,7 @@ def parse_operation(update: Update, context: CallbackContext) -> None:
         update.message.reply_text("Проверьте формат вводимых данных")
 
 
-def main(TOKEN):
+def main(TOKEN, ENV):
     updater = Updater(TOKEN, use_context=True)
 
     dispatcher = updater.dispatcher
