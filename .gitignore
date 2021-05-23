@@ -8,3 +8,4 @@ __pycache__
 .idea
 /data.pickle
 .env
+google-credentials.json

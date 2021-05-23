@@ -71,14 +71,13 @@ def main(TOKEN, ENV):
 
     if ENV == 'HEROKU':
         NAME = os.environ.get("HEROKU_APP_NAME")
-        TOKEN = os.environ["TOKEN"]
 
         # Port is given by Heroku
         PORT = int(os.environ.get("PORT", "8443"))
         updater.start_webhook(listen="0.0.0.0",
                               port=PORT,
-                              url_path=TOKEN)
-        updater.bot.setWebhook("https://{}.herokuapp.com/{}".format(NAME, TOKEN))
+                              url_path=TOKEN,
+                              webhook_url="https://{}.herokuapp.com/{}".format(NAME, TOKEN))
 
     elif ENV == 'DEV':
         updater.start_polling()
