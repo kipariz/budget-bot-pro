@@ -1,8 +1,9 @@
-/test.py
-/config.py
+/parse/processing.py
+/configs
 __pycache__
 /credentials.json
 /token.pickle
 .history
-/test.py
+.venv
+.idea
 /data.pickle
