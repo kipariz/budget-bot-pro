@@ -6,15 +6,6 @@ load_dotenv()
 
 SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
 
-# def get_first_sheet_title(_sheet):
-#     """As I understand by default, if name of sheet is not passed, first sheet will be used.
-#     Hence this function is not needed right now, but could be useful later.
-#     """
-#     sheet_metadata = _sheet.get(spreadsheetId=SPREADSHEET_ID).execute()
-#     sheets = sheet_metadata.get('sheets', '')
-#     title = sheets[0].get("properties", {}).get("title", "Sheet1")
-#     return title
-
 
 def write(_range, data):
     request = sheet.values().update(spreadsheetId=SPREADSHEET_ID, range=_range,

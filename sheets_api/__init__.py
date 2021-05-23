@@ -15,7 +15,6 @@ creds = None
 try:
     with open(config_path) as config_file:
         creds_json = json.load(config_file)
-        print(creds_json)
 
     creds = service_account.Credentials.from_service_account_file(config_path, scopes=SCOPES)
 except:
