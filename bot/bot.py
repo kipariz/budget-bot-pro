@@ -71,7 +71,7 @@ def main(TOKEN, ENV):
 
     if ENV == 'HEROKU':
         NAME = os.environ.get("HEROKU_APP_NAME")
-        TOKEN = os.environ["TOKEN"]
+        TOKEN = os.environ["BOT_TOKEN"]
 
         # Port is given by Heroku
         PORT = int(os.environ.get("PORT", "8443"))
