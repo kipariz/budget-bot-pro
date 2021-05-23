@@ -5,7 +5,7 @@ from collections import namedtuple
 
 here = os.path.dirname(__file__)
 root = os.path.abspath(os.path.join(here, os.pardir))
-config_path = os.path.join(root, "configs", "creds.json")
+config_path = os.path.join(root, "google-credentials.json")
 
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
