@@ -1,10 +1,12 @@
 import logging
 import os
+from configs.config import ENV
 
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
-
-# from settings import TOKEN
+from parse.processing import parse_input
+from sheets_api import finance
+from sheets_api.api import update_or_write
 
 
 logging.basicConfig(
@@ -15,36 +17,50 @@ logger = logging.getLogger(__name__)
 
 
 def start(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text('Hi!')
+    update.message.reply_text('Привет!\n Для добавления информации в таблицу напиши сообщение в формате:\n'
+                              'название покупки сумма категория [опционально].\n'
+                              'Нельзя использовать числа (кроме суммы). \n'
+                              'детальнее - /help')
 
 
 def help_command(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text('Help!')
+    update.message.reply_text('просто число для расходов\n'
+                              '+ для доходов\n'
+                              '? для планируемых доходов.расходов\n\n'
+                              'Например:\n'
+                              '"мак 100 eat outside" - добаивт расход "мак" в категорию "eat outside"\n'
+                              '"зарплата +1000 - добаивт доход "зарплата" в общую категорию \n'
+                              '"зубы ?1000 здоровье - добаивт потенциальный расход "зубы" в категорию "здоровье"\n')
 
 
-def find_artist(update: Update, context: CallbackContext) -> None:
+def parse_operation(update: Update, context: CallbackContext) -> None:
     data = update.message.text
     logger.info(f"data from user {data}")
 
     try:
-        web_prev = web_preview(data)
-        full = web_prev[1]
-        artist = full[full.find("a song by") + len("a song by "):full.find(" on Spotify")]
-        wiki_info = wikipedia.summary(artist)
-        update.message.reply_text(wiki_info)
+        parsed = parse_input(data)
+        logger.info(f"parsed data {parsed}")
+        data = []
+
+        if 'expense' in parsed['source']:
+            finance_type = finance.expenses
+        else:
+            finance_type = finance.income
+
+        amount = int(parsed['amount'][0])
+        if 'planning' in parsed['source']:
+            data.extend([parsed['name'], parsed['category'], "", amount])
+        else:
+            data.extend([parsed['name'], parsed['category'], amount])
+
+        update_or_write(finance_type, [data])
+        update.message.reply_text(str(parsed))
 
     except:
-        update.message.reply_text(
-            "Your link is incorect! Please provide a track link (you can get it from share button in spotify)")
+        update.message.reply_text("Проверьте формат вводимых данных")
 
 
-def main():
-    NAME = os.environ.get("HEROKU_APP_NAME")
-    TOKEN = os.environ["TOKEN"]
-
-    # Port is given by Heroku
-    PORT = int(os.environ.get("PORT", "8443"))
-
+def main(TOKEN):
     updater = Updater(TOKEN, use_context=True)
 
     dispatcher = updater.dispatcher
@@ -52,15 +68,23 @@ def main():
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("help", help_command))
 
-    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, find_artist))
+    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, parse_operation))
 
-    updater.start_webhook(listen="0.0.0.0",
-                          port=PORT,
-                          url_path=TOKEN)
-    updater.bot.setWebhook("https://{}.herokuapp.com/{}".format(NAME, TOKEN))
+    if ENV == 'HEROKU':
+        NAME = os.environ.get("HEROKU_APP_NAME")
+        TOKEN = os.environ["TOKEN"]
+
+        # Port is given by Heroku
+        PORT = int(os.environ.get("PORT", "8443"))
+        updater.start_webhook(listen="0.0.0.0",
+                              port=PORT,
+                              url_path=TOKEN)
+        updater.bot.setWebhook("https://{}.herokuapp.com/{}".format(NAME, TOKEN))
+
+    elif ENV == 'DEV':
+        updater.start_polling()
 
     updater.idle()
 
 
-if __name__ == '__main__':
-    main()
+
