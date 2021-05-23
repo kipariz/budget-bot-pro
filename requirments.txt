@@ -5,3 +5,4 @@ google-auth-httplib2==0.1.0
 google-auth-oauthlib==0.4.4
 googleapis-common-protos==1.53.0
 python-telegram-bot==13.5
+python-dotenv==0.17.1
