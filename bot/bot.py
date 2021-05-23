@@ -77,8 +77,8 @@ def main(TOKEN, ENV):
         PORT = int(os.environ.get("PORT", "8443"))
         updater.start_webhook(listen="0.0.0.0",
                               port=PORT,
-                              url_path=TOKEN)
-        updater.bot.setWebhook("https://{}.herokuapp.com/{}".format(NAME, TOKEN))
+                              url_path=TOKEN,
+                              webhook_url="https://{}.herokuapp.com/{}".format(NAME, TOKEN))
 
     elif ENV == 'DEV':
         updater.start_polling()
