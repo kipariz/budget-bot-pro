@@ -1,6 +1,11 @@
 from bot.bot import main
-from configs.config import BOT_TOKEN
+import os
+from dotenv import load_dotenv
 
 
 if __name__ == '__main__':
-    main(BOT_TOKEN)
+    load_dotenv()
+    BOT_TOKEN = os.getenv("BOT_TOKEN")
+    ENV = os.getenv("ENV")
+
+    main(BOT_TOKEN, ENV)

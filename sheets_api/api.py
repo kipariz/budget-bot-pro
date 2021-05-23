@@ -1,15 +1,19 @@
-from configs.config import SPREADSHEET_ID
-from sheets_api import sheet, finance
+from sheets_api import sheet
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
-def get_first_sheet_title(_sheet):
-    """As I understand by default, if name of sheet is not passed, first sheet will be used.
-    Hence this function is not needed right now, but could be useful later.
-    """
-    sheet_metadata = _sheet.get(spreadsheetId=SPREADSHEET_ID).execute()
-    sheets = sheet_metadata.get('sheets', '')
-    title = sheets[0].get("properties", {}).get("title", "Sheet1")
-    return title
+SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
+
+# def get_first_sheet_title(_sheet):
+#     """As I understand by default, if name of sheet is not passed, first sheet will be used.
+#     Hence this function is not needed right now, but could be useful later.
+#     """
+#     sheet_metadata = _sheet.get(spreadsheetId=SPREADSHEET_ID).execute()
+#     sheets = sheet_metadata.get('sheets', '')
+#     title = sheets[0].get("properties", {}).get("title", "Sheet1")
+#     return title
 
 
 def write(_range, data):
@@ -40,4 +44,3 @@ def update_or_write(location, data):
     update_range = f"{location.column.name}{location.column.start + index}"
     write(update_range, data)
 
-    print()
