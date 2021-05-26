@@ -28,8 +28,8 @@ sheet = service.spreadsheets()
 
 Finance = namedtuple('Finance', ['income', 'expenses'])
 Locations = namedtuple('Locations', ['column', 'range'])
-Column = namedtuple('Column', ['name', 'start'])
+Column = namedtuple('Column', ['name_start', 'name_end', 'start'])
 
-finance = Finance(Locations(Column('A', 4), 'A4:A100'),
-                  Locations(Column('F', 4), 'F4:F100'))
+finance = Finance(Locations(Column('A', 'D', 4), 'A4:A100'),
+                  Locations(Column('F', 'I', 4), 'F4:F100'))
 

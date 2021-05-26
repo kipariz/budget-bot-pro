@@ -41,16 +41,16 @@ def parse_operation(update: Update, context: CallbackContext) -> None:
         logger.info(f"parsed data {parsed}")
         data = []
 
-        if 'expense' in parsed['source']:
+        if 'expense' in parsed.source:
             finance_type = finance.expenses
         else:
             finance_type = finance.income
 
-        amount = int(parsed['amount'][0])
-        if 'planning' in parsed['source']:
-            data.extend([parsed['name'], parsed['category'], "", amount])
+        amount = int(parsed.amount[0])
+        if 'planning' in parsed.source:
+            data.extend([parsed.name, parsed.category, "", amount])
         else:
-            data.extend([parsed['name'], parsed['category'], amount])
+            data.extend([parsed.name, parsed.category, amount])
 
         update_or_write(finance_type, [data])
         update.message.reply_text(str(parsed))
