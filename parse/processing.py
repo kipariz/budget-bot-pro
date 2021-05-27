@@ -1,4 +1,5 @@
 import re
+from parse.schema import Table
 
 
 def get_meta(merged: str):
@@ -31,16 +32,11 @@ def get_source(meta: str):
     return source
 
 
-def parse_input(operation_data: str):
+def parse_input(operation_data: str) -> Table:
     amount = re.findall(r'\d+', operation_data)
-    name, cat = re.split(r'\d+', operation_data)
+    name, category = re.split(r'\d+', operation_data)
     name, meta = get_meta(name)
     source = get_source(meta)
 
-    return {
-        "name": name,
-        "category": cat,
-        "amount": amount,
-        "source": source
-    }
+    return Table(name, category, amount, source)
 

@@ -15,7 +15,6 @@ creds = None
 try:
     with open(config_path) as config_file:
         creds_json = json.load(config_file)
-        print(creds_json)
 
     creds = service_account.Credentials.from_service_account_file(config_path, scopes=SCOPES)
 except:
@@ -29,8 +28,8 @@ sheet = service.spreadsheets()
 
 Finance = namedtuple('Finance', ['income', 'expenses'])
 Locations = namedtuple('Locations', ['column', 'range'])
-Column = namedtuple('Column', ['name', 'start'])
+Column = namedtuple('Column', ['name_start', 'name_end', 'start'])
 
-finance = Finance(Locations(Column('A', 4), 'A4:A100'),
-                  Locations(Column('F', 4), 'F4:F100'))
+finance = Finance(Locations(Column('A', 'D', 4), 'A4:A100'),
+                  Locations(Column('F', 'I', 4), 'F4:F100'))
 
